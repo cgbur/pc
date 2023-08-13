@@ -18,19 +18,27 @@ makes math as simple as typing a command.
 
 ```sh
 ❯ pc 1 2 3 4 5
-↑ 100.00%
-↑  50.00%
-↑  33.33%
-↑  25.00%
+↑    100%       1 → 2    
+↑     50%       2 → 3    
+↑  33.33%       3 → 4    
+↑     25%       4 → 5   
 ```
 
 ### Custom Delimiters? No Problem:
 
 ```sh
 ❯ echo "15,20 3 6" | pc -d ","
-↑  33.33%
-↓ -85.00%
-↑ 100.00%
+↑  33.33%      15 → 20   
+↓    -85%      20 → 3    
+↑    100%       3 → 6 
+```
+
+### Fixed Calculation (relative to the first number):
+
+```sh
+❯ echo "128 221 150" | pc -f
+↑  72.66%     128 → 221
+↑  17.19%     128 → 150
 ```
 
 ### Full Command List:
@@ -40,8 +48,6 @@ pc --help
 ```
 
 ## Installation 📥
-
-Choose your path:
 
 ### Grab Prebuilt Binaries
 
