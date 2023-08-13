@@ -76,7 +76,9 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
-    const stdout = std.io.getStdOut().writer();
+    var stdout_buf = std.io.bufferedWriter(std.io.getStdOut().writer());
+    defer stdout_buf.flush() catch {};
+    var stdout = stdout_buf.writer();
 
     const args = try std.process.argsAlloc(allocator);
     var nums = ArrayList(f32).init(allocator);

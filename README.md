@@ -2,6 +2,13 @@
 
 No longer will your coworkers and friends make fun of you when you can't do simple math in your head. Now you can do it in your terminal! `pc` is a simple tool that calculates the percent difference between a list of numbers. It supports reading from stdin or passing the numbers as arguments.
 
+### Features
+
+- Fashionable output
+- Calculates percent change correctly every time
+- Blazing fast
+- Written in Zig
+
 ## Usage
 
 Calculate the percent difference between a sequence of numbers:
