@@ -25,7 +25,7 @@ jobs:
       - run: zig fmt --check src/*.zig
 
   build:
-    if: github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/')
+    if: github.ref_type == 'tag' && github.base_ref == 'main'
     strategy:
       fail-fast: false
       matrix:
@@ -50,7 +50,6 @@ jobs:
           path: zig-out/bin/*
 
   release:
-    if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
     steps:
