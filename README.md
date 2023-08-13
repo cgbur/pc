@@ -1,4 +1,4 @@
-# `pc` - Percent Change Calculator
+# `pc` - Terminal Percent Change
 
 No longer will your coworkers and friends make fun of you when you can't do simple math in your head. Now you can do it in your terminal! `pc` is a simple tool that calculates the percent difference between a list of numbers. It supports reading from stdin or passing the numbers as arguments.
 
