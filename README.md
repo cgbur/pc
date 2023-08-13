@@ -1,17 +1,17 @@
-# `pc` - Terminal Percent Change
+# `pc` - Terminal Percent Change 🚀
 
-No longer will your coworkers and friends make fun of you when you can't do simple math in your head. Now you can do it in your terminal! `pc` is a simple tool that calculates the percent difference between a list of numbers. It supports reading from stdin or passing the numbers as arguments.
+Ever been teased for not doing simple math in your head? Say no more! `pc` is here to save the day. Effortlessly calculate percent differences between numbers directly in your terminal 🧮⚡. A lightweight, blazing-fast tool that makes math as simple as typing a command.
 
-### Features
+### Features 🌟
 
-- Fashionable output
-- Calculates percent change correctly every time
-- Blazing fast
-- Written in Zig
+- **Fashionable Output:** Make your numbers look good 🎩.
+- **Always Accurate:** Calculates percent change correctly every time 🎯.
+- **Blazing Fast:** Don't wait, get your results instantly 🚀.
+- **Zig-Powered:** Crafted with love using Zig ❤️.
 
-## Usage
+## Usage 🛠️
 
-Calculate the percent difference between a sequence of numbers:
+### Basic Calculation:
 
 ```sh
 ❯ pc 1 2 3 4 5
@@ -21,7 +21,7 @@ Calculate the percent difference between a sequence of numbers:
 ↑  25.00%
 ```
 
-Use custom delimiters with the `-d` flag:
+### Custom Delimiters? No Problem:
 
 ```sh
 ❯ echo "15,20 3 6" | pc -d ","
@@ -30,57 +30,23 @@ Use custom delimiters with the `-d` flag:
 ↑ 100.00%
 ```
 
-Default delimiters are space, tab, and newline characters, but you can specify more with the `-d` flag:
-
-```sh
-echo 1,2,3,4,5 | pc -d ","
-```
-
-Show the help message:
+### Full Command List:
 
 ```sh
 pc --help
 ```
 
-### Help Output
+## Installation 📥
 
-```
-Usage: pc [numbers...] or ... | pc
-Calculate the percent change between numbers.
+Choose your path:
 
-Arguments:
-  numbers...       : A sequence of numbers for which the percent change is to be calculated.
-  -                 : Reads input from stdin.
+### Grab Prebuilt Binaries
 
-Options:
-  -h, --help        : Show this help message and exit.
-  -v, --version     : Show version information and exit.
-  -d, --delimiters  : Specify extra delimiter(s) to use for parsing (default: " \t\n\r").
-                      Example: echo "1,2,3" | pc -d ","
+Get them from the [releases](https://github.com/cgbur/pc/releases) page.
 
-Symbols:
-  ↑                 : Indicates a positive percent change.
-  ↓                 : Indicates a negative percent change.
-  →                 : Indicates no change.
+### Or Build from Source 🛠️
 
-Notes:
-  - At least 2 numbers are required for calculation.
-  - Invalid numbers in the sequence will be skipped.
-
-Example:
-  pc 10 20 30
-  echo "10,20,30" | pc -d ","
-```
-
-## Installation
-
-### Prebuilt Binaries
-
-See the [releases](https://github.com/cgbur/pc/releases) page for prebuilt binaries.
-
-### Build from Source
-
-Build and install `pc` using Zig:
+With Zig, it's a breeze:
 
 ```sh
 git clone https://github.com/cgbur/pc.git
