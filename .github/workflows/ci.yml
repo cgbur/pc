@@ -35,7 +35,5 @@ jobs:
     - name: Archive executable
       uses: actions/upload-artifact@v3
       with:
-        name: pc
+        name: ${{ matrix.target }}-pc
         path: zig-out/bin/*
-
-
