@@ -7,10 +7,10 @@ makes math as simple as typing a command.
 
 ### Features 🌟
 
-- **Fashionable Output:** Make your numbers look good 🎩.
-- **Always Accurate:** Calculates percent change correctly every time 🎯.
-- **Blazing Fast:** Don't wait, get your results instantly 🚀.
-- **Zig-Powered:** Crafted with love using Zig ❤️.
+- **Fashionable Output:** Make your numbers look good 🎩
+- **Always Accurate:** Calculates percent change correctly every time 🎯
+- **Blazing Fast:** Don't wait, get your results instantly 🚀
+- **Zig-Powered:** Crafted with love using Zig ❤️
 
 ## Usage 🛠️
 
