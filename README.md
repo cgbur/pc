@@ -26,9 +26,8 @@ makes math as simple as typing a command.
 
 ### Friendly Sizes by Default 🎓
 
-`pc` now makes your large numbers more human-readable by converting them into
-friendly sizes like GiB, MiB, KiB, etc. This feature is enabled by default,
-making it easier when working with large numbers.
+Large numbers are automatically converted into human-readable format by
+converting them into friendly sizes like GiB, MiB, KiB, etc.
 
 ```sh
 ❯ echo "1124122523 2421252122" | pc
@@ -42,7 +41,7 @@ Want to see the raw numbers instead? No problem, just pass the `-r` option:
 ↑ 115.39%   2.15x  [1124122496 → 2421252096]
 ```
 
-### Custom Delimiters? No Problem:
+### Custom Delimiters? Sure!
 
 ```sh
 ❯ echo "15,20 3 6" | pc -d ","
