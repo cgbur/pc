@@ -16,7 +16,7 @@ pub const EscapeCodes = struct {
 };
 
 const version = "0.1.0";
-const default_delims = " \t\n\r";
+const default_delims = " \t\n\r|";
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
     \\Calculate the percent change between numbers.
@@ -30,7 +30,7 @@ const usage_text: []const u8 =
     \\Options:
     \\  -h, --help        : Show this help message and exit.
     \\  -v, --version     : Show version information and exit.
-    \\  -d, --delimiters  : Specify extra delimiter(s) to use for parsing (default: " \t\n\r").
+    \\  -d, --delimiters  : Specify extra delimiter(s) to use for parsing (defaults: " \t\n\r|").
     \\                      Example: echo "1,2,3" | pc -d ","
     \\  -f, --fixed       : All percent changes are calculated relative to the first number.
     \\  -r, --raw         : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
@@ -165,9 +165,11 @@ pub fn main() !void {
         const arg = args[arg_i];
         if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
             try stdout.writeAll(usage_text);
+            try stdout_buf.flush();
             return std.process.cleanExit();
         } else if (std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "-V") or std.mem.eql(u8, arg, "--version")) {
             try stdout.print("pc {s}\n", .{version});
+            try stdout_buf.flush();
             return std.process.cleanExit();
         } else if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--fixed")) {
             fixed = true;
