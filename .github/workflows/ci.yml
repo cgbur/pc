@@ -43,6 +43,13 @@ jobs:
       - name: Build
         run: zig build -Doptimize=ReleaseSmall -Dtarget=${{ matrix.target }}
 
+      - name: Rename
+        # rename everything in the directory to have a matrix target prefix for uploading later
+        run: |
+          for f in zig-out/bin/*; do
+            mv "$f" "zig-out/bin/${{ matrix.target }}-$(basename "$f")"
+          done
+
       - name: Archive executable
         uses: actions/upload-artifact@v3
         with:
@@ -64,3 +71,6 @@ jobs:
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+
