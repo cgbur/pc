@@ -88,3 +88,7 @@ cd pc
 zig build -Doptimize=ReleaseSafe
 cp zig-out/bin/pc ~/.local/bin/pc
 ```
+
+## TODO 📝
+
+- \[ \] Treasure up the output to do proper formatting and alignment
