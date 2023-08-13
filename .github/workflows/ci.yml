@@ -41,7 +41,7 @@ jobs:
           version: master
 
       - name: Build
-        run: zig build -Doptimize=ReleaseSmall -Dtarget=${{ matrix.target }}
+        run: zig build -Doptimize=ReleaseSafe -Dtarget=${{ matrix.target }}
 
       - name: Rename
         # rename everything in the directory to have a matrix target prefix for uploading later

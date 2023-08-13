@@ -24,7 +24,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.strip = true;
+    const disable_strip = b.option(bool, "nostrip", "Disable stripping binaries, default is to strip release binaries") orelse false;
+    const is_debug = optimize == .Debug;
+    if (!is_debug and !disable_strip) {
+        exe.strip = true;
+    }
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
