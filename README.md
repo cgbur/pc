@@ -72,11 +72,11 @@ Get them from the [releases](https://github.com/cgbur/pc/releases) page.
 
 ### Or Build from Source 🛠️
 
-With Zig, it's a breeze:
+You'll need [Zig](https://ziglang.org) to build from source.
 
 ```sh
 git clone https://github.com/cgbur/pc.git
 cd pc
-zig build -Doptimize=ReleaseSmall
+zig build -Doptimize=ReleaseSafe
 cp zig-out/bin/pc ~/.local/bin/pc
 ```
