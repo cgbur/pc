@@ -1,11 +1,10 @@
-# pc
+# `pc` - Percent Change Calculator
 
-No longer will your coworkers and friends make fun of you when you can't do
-simple math in your head. Now you can do it in your terminal! `pc` is a simple
-tool that calculates the percent difference between a list of numbers. It
-supports reading from stdin or passing the numbers as arguments.
+No longer will your coworkers and friends make fun of you when you can't do simple math in your head. Now you can do it in your terminal! `pc` is a simple tool that calculates the percent difference between a list of numbers. It supports reading from stdin or passing the numbers as arguments.
 
 ## Usage
+
+Calculate the percent difference between a sequence of numbers:
 
 ```sh
 ❯ pc 1 2 3 4 5
@@ -15,6 +14,8 @@ supports reading from stdin or passing the numbers as arguments.
 ↑  25.00%
 ```
 
+Use custom delimiters with the `-d` flag:
+
 ```sh
 ❯ echo "15,20 3 6" | pc -d ","
 ↑  33.33%
@@ -22,21 +23,26 @@ supports reading from stdin or passing the numbers as arguments.
 ↑ 100.00%
 ```
 
-Default delimiters are ` \n\r\n`, but you can specify more with the `-d` flag.
+Default delimiters are space, tab, and newline characters, but you can specify more with the `-d` flag:
 
 ```sh
 echo 1,2,3,4,5 | pc -d ","
 ```
 
+Show the help message:
+
 ```sh
 pc --help
+```
+
+### Help Output
+
+```
 Usage: pc [numbers...] or ... | pc
 Calculate the percent change between numbers.
 
 Arguments:
   numbers...       : A sequence of numbers for which the percent change is to be calculated.
-
-Special Arguments:
   -                 : Reads input from stdin.
 
 Options:
@@ -60,10 +66,13 @@ Example:
 
 ## Installation
 
-See the [releases](https://github.com/cgbur/pc/releases) page for prebuilt
-binaries.
+### Prebuilt Binaries
 
-### Build from source
+See the [releases](https://github.com/cgbur/pc/releases) page for prebuilt binaries.
+
+### Build from Source
+
+Build and install `pc` using Zig:
 
 ```sh
 git clone https://github.com/cgbur/pc.git
