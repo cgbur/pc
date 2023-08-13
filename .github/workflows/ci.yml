@@ -25,7 +25,7 @@ jobs:
       - run: zig fmt --check src/*.zig
 
   build:
-    if: github.ref_type == 'tag' && github.base_ref == 'main'
+    if: startsWith(github.ref, 'refs/tags/v')
     strategy:
       fail-fast: false
       matrix:
