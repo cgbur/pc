@@ -22,7 +22,7 @@ const usage_text: []const u8 =
     \\Calculate the percent change between numbers.
     \\
     \\Arguments:
-    \\  numbers...       : A sequence of numbers for which the percent change is to be calculated.
+    \\  numbers...        : A sequence of numbers for which the percent change is to be calculated.
     \\
     \\Special Arguments:
     \\  -                 : Reads input from stdin.
