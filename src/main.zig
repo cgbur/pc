@@ -15,9 +15,14 @@ pub const EscapeCodes = struct {
 };
 
 const usage_text: []const u8 =
+    \\ pc: percent change
     \\Usage:   pc [numbers...] or ... | pc
+    \\ - is a special argument that reads from stdin 
     \\Options:
     \\ -h, --help: Show this help message
+    \\ -d, --delimiters: specify extra delimter(s) to use for parsing
+    \\           (default: " \t\n\r")
+    \\           (example: echo "1,2,3" | pc -d ",")
     \\
 ;
 
@@ -59,6 +64,13 @@ pub fn main() !void {
     var nums = ArrayList(f32).init(allocator);
     defer nums.deinit();
 
+    const default_delims = " \t\n\r";
+    var delims = try ArrayList(u8).initCapacity(allocator, default_delims.len);
+    defer delims.deinit();
+    inline for (" \t\n\r") |c| {
+        try delims.append(c);
+    }
+
     // parse args
     var arg_i: usize = 1;
     while (arg_i < args.len) : (arg_i += 1) {
@@ -66,8 +78,20 @@ pub fn main() !void {
         if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
             try stdout.writeAll(usage_text);
             return std.process.cleanExit();
-        }
-        if (parseNum(arg)) |num| {
+        } else if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--delimiters")) {
+            arg_i += 1;
+            if (arg_i >= args.len) {
+                std.debug.print("pc: missing argument for {s}\n", .{arg});
+                try stdout.writeAll(usage_text);
+                return std.process.exit(1);
+            }
+            const delim = args[arg_i];
+            for (delim) |c| {
+                try delims.append(c);
+            }
+        } else if (std.mem.eql(u8, arg, "-")) {
+            break;
+        } else if (parseNum(arg)) |num| {
             try nums.append(num);
         }
     }
@@ -78,7 +102,7 @@ pub fn main() !void {
             std.debug.print("pc: error reading stdin: {s}\n", .{@errorName(e)});
             return std.process.exit(1);
         };
-        var it = std.mem.tokenizeAny(u8, input, " \t\n\r");
+        var it = std.mem.tokenizeAny(u8, input, delims.items);
         while (it.next()) |s| {
             if (parseNum(s)) |num| {
                 try nums.append(num);
