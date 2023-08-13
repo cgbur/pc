@@ -8,11 +8,18 @@ supports reading from stdin or passing the numbers as arguments.
 ## Usage
 
 ```sh
-pc 1 2 3 4 5
+❯ pc 1 2 3 4 5
+↑ 100.00%
+↑  50.00%
+↑  33.33%
+↑  25.00%
 ```
 
 ```sh
-echo 1 2 3 4 5 | pc
+❯ echo "15,20 3 6" | pc -d ","
+↑  33.33%
+↓ -85.00%
+↑ 100.00%
 ```
 
 Default delimiters are ` \n\r\n`, but you can specify more with the `-d` flag.
