@@ -1,4 +1,5 @@
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
 pub const EscapeCodes = struct {
@@ -32,6 +33,7 @@ const usage_text: []const u8 =
     \\  -d, --delimiters  : Specify extra delimiter(s) to use for parsing (default: " \t\n\r").
     \\                      Example: echo "1,2,3" | pc -d ","
     \\  -f, --fixed       : All percent changes are calculated relative to the first number.
+    \\  -r, --raw         : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
     \\
     \\Symbols:
     \\  ↑                 : Indicates a positive percent change.
@@ -46,11 +48,8 @@ const usage_text: []const u8 =
     \\  pc 10 20 30
     \\  echo "10,20,30" | pc -d ","
     \\  echo "128 221 150" | pc -f
-    \\    ↑  72.66%     128 → 221
-    \\    ↑  17.19%     128 → 150
-    \\  echo "128 221 150" | pc
-    \\    ↑  72.66%     128 → 221
-    \\    ↓ -32.13%     221 → 150  
+    \\  echo "128 221 150" | pc -r
+    \\
 ;
 
 fn parseNum(s: []const u8) ?f32 {
@@ -75,7 +74,16 @@ fn numberPrecision(num: f32) u8 {
     }
 }
 
-fn fancyPrint(writer: anytype, prev: f32, cur: f32) !void {
+fn sizeFormatPrecision(num: f32) u8 {
+    const diff: u64 = @intFromFloat(std.math.round(@fabs(num)));
+    switch (diff) {
+        0...10 => return 2,
+        11...60 => return 1,
+        else => return 0,
+    }
+}
+
+fn fancyPrint(writer: anytype, prev: f32, cur: f32, raw: bool) !void {
     const diff = percentDiff(prev, cur);
     const symbol = blk: {
         if (diff > 0.0) {
@@ -89,16 +97,46 @@ fn fancyPrint(writer: anytype, prev: f32, cur: f32) !void {
             break :blk "→";
         }
     };
-    try writer.print("{[sign]s} {[perc]d: >6.[diff_prec]}% {[reset]s} {[prev]d: >6.[prev_prec]} → {[cur]d: <5.[cur_prec]}\n", .{
-        .prev_prec = numberPrecision(prev),
-        .cur_prec = numberPrecision(cur),
+    const times: f32 = (cur / prev);
+
+    // write the sign and percent change
+    try writer.print("{[sign]s} {[perc]d: >6.[diff_prec]}%", .{
         .diff_prec = numberPrecision(diff),
         .sign = symbol,
         .perc = diff,
-        .reset = EscapeCodes.reset,
-        .prev = prev,
-        .cur = cur,
     });
+
+    // write the times change
+    try writer.print(" {[times]d: >6.[times_prec]}x {[reset]s} ", .{
+        .times = times,
+        .times_prec = numberPrecision(times),
+        .reset = EscapeCodes.reset,
+    });
+
+    // write the previous and current values
+    if (raw or (prev < 1000.0 and cur < 1000.0)) {
+        const padding = 6;
+        try writer.print("[{[prev]d: >[padding].[prev_prec]} → {[cur]d: <[padding].[cur_prec]}]", .{
+            .prev_prec = numberPrecision(prev),
+            .cur_prec = numberPrecision(cur),
+            .prev = prev,
+            .cur = cur,
+            .padding = padding,
+        });
+    } else {
+        const padding = 8;
+        const prev_int: u64 = @intFromFloat(prev);
+        const cur_int: u64 = @intFromFloat(cur);
+        try writer.print("[{[prev]s: >[padding].[prev_prec]} → {[cur]s: <[padding].[cur_prec]}]", .{
+            .prev_prec = sizeFormatPrecision(diff),
+            .cur_prec = sizeFormatPrecision(diff),
+            .prev = std.fmt.fmtIntSizeBin(prev_int),
+            .cur = std.fmt.fmtIntSizeBin(cur_int),
+            .padding = padding,
+        });
+    }
+
+    try writer.print("\n", .{});
 }
 
 pub fn main() !void {
@@ -119,6 +157,7 @@ pub fn main() !void {
         try delims.append(c);
     }
     var fixed = false;
+    var raw = false;
 
     // parse args
     var arg_i: usize = 1;
@@ -132,6 +171,8 @@ pub fn main() !void {
             return std.process.cleanExit();
         } else if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--fixed")) {
             fixed = true;
+        } else if (std.mem.eql(u8, arg, "-r") or std.mem.eql(u8, arg, "--raw")) {
+            raw = true;
         } else if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--delimiters")) {
             arg_i += 1;
             if (arg_i >= args.len) {
@@ -173,7 +214,7 @@ pub fn main() !void {
     // calculate percent difference between each pair
     var cur = nums.items[0];
     for (nums.items[1..]) |num| {
-        try fancyPrint(stdout, cur, num);
+        try fancyPrint(stdout, cur, num, raw);
         if (!fixed) cur = num;
     }
 }
