@@ -153,8 +153,8 @@ pub fn main() !void {
 
     var delims = try ArrayList(u8).initCapacity(allocator, default_delims.len);
     defer delims.deinit();
-    inline for (" \t\n\r") |c| {
-        try delims.append(c);
+    inline for (default_delims) |delim| {
+        try delims.append(delim);
     }
     var fixed = false;
     var raw = false;
