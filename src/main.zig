@@ -15,14 +15,32 @@ pub const EscapeCodes = struct {
 };
 
 const usage_text: []const u8 =
-    \\ pc: percent change
-    \\Usage:   pc [numbers...] or ... | pc
-    \\ - is a special argument that reads from stdin 
+    \\Usage: pc [numbers...] or ... | pc
+    \\Calculate the percent change between numbers.
+    \\
+    \\Arguments:
+    \\  numbers...       : A sequence of numbers for which the percent change is to be calculated.
+    \\
+    \\Special Arguments:
+    \\  -                 : Reads input from stdin.
+    \\
     \\Options:
-    \\ -h, --help: Show this help message
-    \\ -d, --delimiters: specify extra delimter(s) to use for parsing
-    \\           (default: " \t\n\r")
-    \\           (example: echo "1,2,3" | pc -d ",")
+    \\  -h, --help        : Show this help message and exit.
+    \\  -d, --delimiters  : Specify extra delimiter(s) to use for parsing (default: " \t\n\r").
+    \\                      Example: echo "1,2,3" | pc -d ","
+    \\
+    \\Symbols:
+    \\  ↑                 : Indicates a positive percent change.
+    \\  ↓                 : Indicates a negative percent change.
+    \\  →                 : Indicates no change.
+    \\
+    \\Notes:
+    \\  - At least 2 numbers are required for calculation.
+    \\  - Invalid numbers in the sequence will be skipped.
+    \\
+    \\Example:
+    \\  pc 10 20 30
+    \\  echo "10,20,30" | pc -d ","
     \\
 ;
 
