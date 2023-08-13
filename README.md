@@ -54,10 +54,9 @@ Want to see the raw numbers instead? No problem, just pass the `-r` option:
 
 By default `pc` uses the following delimiters: ` \n\t\r,;:|`.
 
-````sh
+```sh
 ❯ echo "1 2,3;4:5|6" | pc
 ```
-
 
 ### Fixed Calculation (relative to the first number):
 
@@ -65,7 +64,7 @@ By default `pc` uses the following delimiters: ` \n\t\r,;:|`.
 ❯ echo "128 221 150" | pc -f
 ↑  72.66%   1.73x  [   128 → 221   ]
 ↑  17.19%   1.17x  [   128 → 150   ]
-````
+```
 
 ### Full Command List:
 
