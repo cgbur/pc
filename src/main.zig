@@ -14,6 +14,8 @@ pub const EscapeCodes = struct {
     pub const erase_line = "\x1b[2K\r";
 };
 
+const version = "0.1.0";
+
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
     \\Calculate the percent change between numbers.
@@ -26,6 +28,7 @@ const usage_text: []const u8 =
     \\
     \\Options:
     \\  -h, --help        : Show this help message and exit.
+    \\  -v, --version     : Show version information and exit.
     \\  -d, --delimiters  : Specify extra delimiter(s) to use for parsing (default: " \t\n\r").
     \\                      Example: echo "1,2,3" | pc -d ","
     \\
@@ -97,6 +100,9 @@ pub fn main() !void {
         const arg = args[arg_i];
         if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
             try stdout.writeAll(usage_text);
+            return std.process.cleanExit();
+        } else if (std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "-V") or std.mem.eql(u8, arg, "--version")) {
+            try stdout.print("pc {s}\n", .{version});
             return std.process.cleanExit();
         } else if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--delimiters")) {
             arg_i += 1;

@@ -54,6 +54,7 @@ Arguments:
 
 Options:
   -h, --help        : Show this help message and exit.
+  -v, --version     : Show version information and exit.
   -d, --delimiters  : Specify extra delimiter(s) to use for parsing (default: " \t\n\r").
                       Example: echo "1,2,3" | pc -d ","
 
