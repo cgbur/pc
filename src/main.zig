@@ -78,7 +78,7 @@ fn sizeFormatPrecision(num: f32) u8 {
     const diff: u64 = @intFromFloat(std.math.round(@fabs(num)));
     switch (diff) {
         0...10 => return 2,
-        11...60 => return 1,
+        11...200 => return 1,
         else => return 0,
     }
 }

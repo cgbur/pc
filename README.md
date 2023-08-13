@@ -18,27 +18,45 @@ makes math as simple as typing a command.
 
 ```sh
 ❯ pc 1 2 3 4 5
-↑    100%       1 → 2    
-↑     50%       2 → 3    
-↑  33.33%       3 → 4    
-↑     25%       4 → 5   
+↑    100%      2x  [     1 → 2     ]
+↑     50%   1.50x  [     2 → 3     ]
+↑  33.33%   1.33x  [     3 → 4     ]
+↑     25%   1.25x  [     4 → 5     ]
+```
+
+### Friendly Sizes by Default 🎓
+
+`pc` now makes your large numbers more human-readable by converting them into
+friendly sizes like GiB, MiB, KiB, etc. This feature is enabled by default,
+making it easier when working with large numbers.
+
+```sh
+❯ echo "1124122523 2421252122" | pc
+↑ 115.39%   2.15x  [  1.0GiB → 2.3GiB  ]
+```
+
+Want to see the raw numbers instead? No problem, just pass the `-r` option:
+
+```sh
+❯ echo "1124122523 2421252122" | pc -r
+↑ 115.39%   2.15x  [1124122496 → 2421252096]
 ```
 
 ### Custom Delimiters? No Problem:
 
 ```sh
 ❯ echo "15,20 3 6" | pc -d ","
-↑  33.33%      15 → 20   
-↓    -85%      20 → 3    
-↑    100%       3 → 6 
+↑  33.33%   1.33x  [    15 → 20    ]
+↓    -85%   0.15x  [    20 → 3     ]
+↑    100%      2x  [     3 → 6     ]
 ```
 
 ### Fixed Calculation (relative to the first number):
 
 ```sh
 ❯ echo "128 221 150" | pc -f
-↑  72.66%     128 → 221
-↑  17.19%     128 → 150
+↑  72.66%   1.73x  [   128 → 221   ]
+↑  17.19%   1.17x  [   128 → 150   ]
 ```
 
 ### Full Command List:
