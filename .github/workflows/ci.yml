@@ -1,6 +1,14 @@
+
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    tags:
+      - '*'
+    branches:
+      - main
+  pull_request:
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -8,12 +16,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: goto-bus-stop/setup-zig@v2
       - run: zig build test
+
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: goto-bus-stop/setup-zig@v2
       - run: zig fmt --check src/*.zig
+
   build:
     if: github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/')
     strategy:
@@ -22,19 +32,52 @@ jobs:
         target: [ x86_64-linux, aarch64-linux, riscv64-linux, x86_64-windows, aarch64-macos ]
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Setup Zig
-      uses: goto-bus-stop/setup-zig@v2
-      with:
-        version: master
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: master
 
-    - name: Build
-      run: zig build -Doptimize=ReleaseSmall -Dtarget=${{ matrix.target }}
+      - name: Build
+        run: zig build -Doptimize=ReleaseSmall -Dtarget=${{ matrix.target }}
 
-    - name: Archive executable
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ matrix.target }}-pc
-        path: zig-out/bin/*
+      - name: Archive executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}-pc
+          path: zig-out/bin/*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.target }}-pc
+          path: artifacts
+
+      - name: Create Release
+        id: create_release
+        uses: gh-actions/create-release@v1.0.0
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Release for ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: gh-actions/upload-release-asset@v1.0.1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/*
+          asset_name: executable-${{ matrix.target }}-pc
+          asset_content_type: application/octet-stream
