@@ -44,11 +44,20 @@ Want to see the raw numbers instead? No problem, just pass the `-r` option:
 ### Custom Delimiters? Sure!
 
 ```sh
-❯ echo "15,20 3 6" | pc -d ","
+❯ echo "15@20@3 6" | pc -d "@"
 ↑  33.33%   1.33x  [    15 → 20    ]
 ↓    -85%   0.15x  [    20 → 3     ]
 ↑    100%      2x  [     3 → 6     ]
 ```
+
+### Different Delimiters? No Problem!
+
+By default `pc` uses the following delimiters: ` \n\t\r,;:|`.
+
+````sh
+❯ echo "1 2,3;4:5|6" | pc
+```
+
 
 ### Fixed Calculation (relative to the first number):
 
@@ -56,7 +65,7 @@ Want to see the raw numbers instead? No problem, just pass the `-r` option:
 ❯ echo "128 221 150" | pc -f
 ↑  72.66%   1.73x  [   128 → 221   ]
 ↑  17.19%   1.17x  [   128 → 150   ]
-```
+````
 
 ### Full Command List:
 
