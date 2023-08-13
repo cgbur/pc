@@ -60,11 +60,13 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.target }}-pc
-          path: artifacts
+          path: artifacts 
 
       - name: Create Release
         id: create_release
-        uses: gh-actions/create-release@v1.0.0
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
@@ -74,7 +76,7 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        uses: gh-actions/upload-release-asset@v1.0.1
+        uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./artifacts/*
