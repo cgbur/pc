@@ -15,7 +15,7 @@ pub const EscapeCodes = struct {
     pub const erase_line = "\x1b[2K\r";
 };
 
-const version = "0.2.0";
+const version = "0.2.1";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
@@ -75,7 +75,8 @@ fn numberPrecision(num: f32) u8 {
 }
 
 fn sizeFormatPrecision(num: f32) u8 {
-    const diff: u64 = @intFromFloat(std.math.round(@fabs(num)));
+    // if num is inf then @intFromFloat will panic
+    const diff: u64 = if (std.math.isInf(num)) std.math.maxInt(u64) else @intFromFloat(@round(@fabs(num)));
     switch (diff) {
         0...10 => return 2,
         11...200 => return 1,
@@ -190,13 +191,15 @@ fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
     } else {
         const prev_int: u64 = @intFromFloat(prev);
         const cur_int: u64 = @intFromFloat(cur);
-        previous = try std.fmt.allocPrint(allocator, "{[prev]s:.[prev_prec]}", .{
+        std.debug.print("diff = {d}\n", .{diff});
+        const precision = sizeFormatPrecision(diff);
+        previous = try std.fmt.allocPrint(allocator, "{[prev]s:.[prec]}", .{
             .prev = std.fmt.fmtIntSizeBin(prev_int),
-            .prev_prec = sizeFormatPrecision(diff),
+            .prec = precision,
         });
-        current = try std.fmt.allocPrint(allocator, "{[cur]s:.[cur_prec]}", .{
+        current = try std.fmt.allocPrint(allocator, "{[cur]s:.[prec]}", .{
             .cur = std.fmt.fmtIntSizeBin(cur_int),
-            .cur_prec = sizeFormatPrecision(diff),
+            .prec = precision,
         });
     }
 
