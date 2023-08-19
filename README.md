@@ -2,7 +2,7 @@
 
 Ever been teased for not doing simple math in your head? Say no more! `pc` is
 here to save the day. Effortlessly calculate percent differences between
-numbers directly in your terminal 🧮⚡. A lightweight, blazing-fast tool that
+numbers directly in your terminal. A lightweight, blazing-fast tool that
 makes math as simple as typing a command.
 
 ### Features 🌟
