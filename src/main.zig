@@ -15,7 +15,7 @@ pub const EscapeCodes = struct {
     pub const erase_line = "\x1b[2K\r";
 };
 
-const version = "0.2.1";
+const version = "0.2.2";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
@@ -61,7 +61,37 @@ fn parseNum(s: []const u8) ?f32 {
 }
 
 fn percentDiff(a: f32, b: f32) f32 {
-    return (b - a) / a * 100.0;
+    if (a == 0) {
+        return if (b == 0) 0.0 else std.math.inf(f32);
+    }
+
+    return (b - a) / @fabs(a) * 100.0;
+}
+
+test "calculates percent differences correctly" {
+    try std.testing.expect(percentDiff(10.0, 20.0) == 100.0);
+    try std.testing.expect((percentDiff(5.4, 6.7) - 24.07) < 0.01);
+    try std.testing.expect(percentDiff(1.0, 1.0) == 0.0);
+    try std.testing.expect(percentDiff(0.0, 0.0) == 0.0);
+    try std.testing.expect((percentDiff(14.3, 12.2) + 14.685) < 0.01);
+    try std.testing.expect((percentDiff(-10.0, -5.0) - 50.0) < 0.1);
+    try std.testing.expect((percentDiff(-10.0, -20.0) + 100.0) < 0.1);
+}
+
+fn timesDiff(a: f32, b: f32) f32 {
+    if (a == 0) {
+        return if (b == 0) 0.0 else std.math.inf(f32);
+    }
+
+    return b / a;
+}
+
+test "calculates times differences correctly" {
+    try std.testing.expect(timesDiff(10.0, 20.0) == 2.0);
+    try std.testing.expect((timesDiff(5.4, 6.7) - 1.24) < 0.01);
+    try std.testing.expect(timesDiff(1.0, 1.0) == 1.0);
+    try std.testing.expect(timesDiff(0.0, 0.0) == 0.0);
+    try std.testing.expect(timesDiff(-10.0, -5.0) == 0.5);
 }
 
 fn numberPrecision(num: f32) u8 {
@@ -75,8 +105,18 @@ fn numberPrecision(num: f32) u8 {
 }
 
 fn sizeFormatPrecision(num: f32) u8 {
-    // if num is inf then @intFromFloat will panic
-    const diff: u64 = if (std.math.isInf(num)) std.math.maxInt(u64) else @intFromFloat(@round(@fabs(num)));
+    var diff: u64 = 0;
+    if (std.math.isInf(num)) {
+        diff = std.math.maxInt(u64);
+    } else {
+        const rounded = @round(@fabs(num));
+        if (rounded > std.math.maxInt(u64)) {
+            diff = std.math.maxInt(u64);
+        } else {
+            diff = @intFromFloat(rounded);
+        }
+    }
+
     switch (diff) {
         0...10 => return 2,
         11...200 => return 1,
@@ -88,6 +128,16 @@ const Sign = enum {
     Positive,
     Negative,
     Neutral,
+
+    fn fromNum(num: f32) Sign {
+        if (num > 0) {
+            return .Positive;
+        } else if (num < 0) {
+            return .Negative;
+        } else {
+            return .Neutral;
+        }
+    }
 
     fn arrow(s: Sign) []const u8 {
         return switch (s) {
@@ -155,31 +205,26 @@ const Maxes = struct {
 };
 
 fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
-    const diff = percentDiff(prev, cur);
-    const sign = blk: {
-        if (diff > 0.0) {
-            break :blk Sign.Positive;
-        } else if (diff < 0.0) {
-            break :blk Sign.Negative;
-        } else {
-            break :blk Sign.Neutral;
-        }
-    };
-    const times_fac: f32 = (cur / prev);
+    const percent_diff = percentDiff(prev, cur);
+    const times_diff = timesDiff(prev, cur);
+    const sign = Sign.fromNum(percent_diff);
 
     const percent = try std.fmt.allocPrint(allocator, "{[perc]d:.[diff_prec]}", .{
-        .perc = diff,
-        .diff_prec = numberPrecision(diff),
+        .perc = percent_diff,
+        .diff_prec = numberPrecision(percent_diff),
     });
 
     const times = try std.fmt.allocPrint(allocator, "{[times]d:.[times_prec]}", .{
-        .times = times_fac,
-        .times_prec = numberPrecision(times_fac),
+        .times = times_diff,
+        .times_prec = numberPrecision(times_diff),
     });
 
     var previous: []const u8 = undefined;
     var current: []const u8 = undefined;
-    if (raw or (prev < 1000.0 and cur < 1000.0)) {
+    const nums_are_small = (prev < 1000.0 and cur < 1000.0);
+    const any_are_negative = (prev < 0.0 or cur < 0.0);
+    const wont_fit_in_u64 = (prev > std.math.maxInt(u64) or cur > std.math.maxInt(u64));
+    if (raw or nums_are_small or any_are_negative or wont_fit_in_u64) {
         previous = try std.fmt.allocPrint(allocator, "{[prev]d:.[prev_prec]}", .{
             .prev = prev,
             .prev_prec = numberPrecision(prev),
@@ -191,7 +236,7 @@ fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
     } else {
         const prev_int: u64 = @intFromFloat(prev);
         const cur_int: u64 = @intFromFloat(cur);
-        const precision = sizeFormatPrecision(diff);
+        const precision = sizeFormatPrecision(percent_diff);
         previous = try std.fmt.allocPrint(allocator, "{[prev]s:.[prec]}", .{
             .prev = std.fmt.fmtIntSizeBin(prev_int),
             .prec = precision,
