@@ -129,13 +129,13 @@ const DiffItem = struct {
 
         try writer.print(" {[perc]s: >[perc_padding]}% {[times]s: >[times_padding]}x {[reset]s}", .{
             .perc = self.percent,
-            .perc_padding = maxes.percent,
+            .perc_padding = maxes.percent + 1,
             .times = self.times,
-            .times_padding = maxes.times,
+            .times_padding = maxes.times + 1,
             .reset = EscapeCodes.reset,
         });
 
-        try writer.print("[ {[prev]s: >[prev_padding]} → {[cur]s: <[cur_padding]} ]", .{
+        try writer.print(" [ {[prev]s: >[prev_padding]} → {[cur]s: <[cur_padding]} ]", .{
             .prev = self.prev,
             .cur = self.cur,
             .prev_padding = maxes.prev,
