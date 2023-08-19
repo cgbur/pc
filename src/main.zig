@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
@@ -257,6 +258,12 @@ fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
 }
 
 pub fn main() !void {
+    if (builtin.os.tag == .windows) {
+        // On Windows, the console's character encoding might not be UTF-8. Set the
+        // console code page to UTF-8 (code 65001) to ensure that special
+        // characters are displayed correctly.
+        _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
+    }
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
