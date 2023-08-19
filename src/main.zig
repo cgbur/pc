@@ -15,7 +15,7 @@ pub const EscapeCodes = struct {
     pub const erase_line = "\x1b[2K\r";
 };
 
-const version = "0.1.0";
+const version = "0.2.0";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
