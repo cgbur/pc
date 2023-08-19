@@ -83,60 +83,130 @@ fn sizeFormatPrecision(num: f32) u8 {
     }
 }
 
-fn fancyPrint(writer: anytype, prev: f32, cur: f32, raw: bool) !void {
+const Sign = enum {
+    Positive,
+    Negative,
+    Neutral,
+
+    fn arrow(s: Sign) []const u8 {
+        return switch (s) {
+            .Positive => "↑",
+            .Negative => "↓",
+            .Neutral => "→",
+        };
+    }
+
+    fn color(s: Sign) []const u8 {
+        return switch (s) {
+            .Positive => EscapeCodes.green,
+            .Negative => EscapeCodes.red,
+            .Neutral => EscapeCodes.white,
+        };
+    }
+};
+
+/// A single item in the diff table. Holds strings that are pre-formatted so we
+/// can calculate the padding for each column.
+const DiffItem = struct {
+    sign: Sign,
+    percent: []const u8,
+    times: []const u8,
+    prev: []const u8,
+    cur: []const u8,
+
+    fn deinit(self: *DiffItem, allocator: Allocator) void {
+        allocator.free(self.percent);
+        allocator.free(self.times);
+        allocator.free(self.prev);
+        allocator.free(self.cur);
+    }
+
+    fn print(self: *DiffItem, writer: anytype, maxes: anytype) !void {
+        try writer.print("{[color]s}{[sign]s}", .{
+            .sign = Sign.arrow(self.sign),
+            .color = self.sign.color(),
+        });
+
+        try writer.print(" {[perc]s: >[perc_padding]}% {[times]s: >[times_padding]}x {[reset]s}", .{
+            .perc = self.percent,
+            .perc_padding = maxes.percent,
+            .times = self.times,
+            .times_padding = maxes.times,
+            .reset = EscapeCodes.reset,
+        });
+
+        try writer.print("[ {[prev]s: >[prev_padding]} → {[cur]s: <[cur_padding]} ]", .{
+            .prev = self.prev,
+            .cur = self.cur,
+            .prev_padding = maxes.prev,
+            .cur_padding = maxes.cur,
+        });
+
+        try writer.print("\n", .{});
+    }
+};
+
+const Maxes = struct {
+    percent: usize = 0,
+    times: usize = 0,
+    prev: usize = 0,
+    cur: usize = 0,
+};
+
+fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
     const diff = percentDiff(prev, cur);
-    const symbol = blk: {
+    const sign = blk: {
         if (diff > 0.0) {
-            try writer.print("{s}", .{EscapeCodes.green});
-            break :blk "↑";
+            break :blk Sign.Positive;
         } else if (diff < 0.0) {
-            try writer.print("{s}", .{EscapeCodes.red});
-            break :blk "↓";
+            break :blk Sign.Negative;
         } else {
-            try writer.print("{s}", .{EscapeCodes.white});
-            break :blk "→";
+            break :blk Sign.Neutral;
         }
     };
-    const times: f32 = (cur / prev);
+    const times_fac: f32 = (cur / prev);
 
-    // write the sign and percent change
-    try writer.print("{[sign]s} {[perc]d: >6.[diff_prec]}%", .{
-        .diff_prec = numberPrecision(diff),
-        .sign = symbol,
+    const percent = try std.fmt.allocPrint(allocator, "{[perc]d:.[diff_prec]}", .{
         .perc = diff,
+        .diff_prec = numberPrecision(diff),
     });
 
-    // write the times change
-    try writer.print(" {[times]d: >6.[times_prec]}x {[reset]s} ", .{
-        .times = times,
-        .times_prec = numberPrecision(times),
-        .reset = EscapeCodes.reset,
+    const times = try std.fmt.allocPrint(allocator, "{[times]d:.[times_prec]}", .{
+        .times = times_fac,
+        .times_prec = numberPrecision(times_fac),
     });
 
-    // write the previous and current values
+    var previous: []const u8 = undefined;
+    var current: []const u8 = undefined;
     if (raw or (prev < 1000.0 and cur < 1000.0)) {
-        const padding = 6;
-        try writer.print("[{[prev]d: >[padding].[prev_prec]} → {[cur]d: <[padding].[cur_prec]}]", .{
-            .prev_prec = numberPrecision(prev),
-            .cur_prec = numberPrecision(cur),
+        previous = try std.fmt.allocPrint(allocator, "{[prev]d:.[prev_prec]}", .{
             .prev = prev,
+            .prev_prec = numberPrecision(prev),
+        });
+        current = try std.fmt.allocPrint(allocator, "{[cur]d:.[cur_prec]}", .{
             .cur = cur,
-            .padding = padding,
+            .cur_prec = numberPrecision(cur),
         });
     } else {
-        const padding = 8;
         const prev_int: u64 = @intFromFloat(prev);
         const cur_int: u64 = @intFromFloat(cur);
-        try writer.print("[{[prev]s: >[padding].[prev_prec]} → {[cur]s: <[padding].[cur_prec]}]", .{
-            .prev_prec = sizeFormatPrecision(diff),
-            .cur_prec = sizeFormatPrecision(diff),
+        previous = try std.fmt.allocPrint(allocator, "{[prev]s:.[prev_prec]}", .{
             .prev = std.fmt.fmtIntSizeBin(prev_int),
+            .prev_prec = sizeFormatPrecision(diff),
+        });
+        current = try std.fmt.allocPrint(allocator, "{[cur]s:.[cur_prec]}", .{
             .cur = std.fmt.fmtIntSizeBin(cur_int),
-            .padding = padding,
+            .cur_prec = sizeFormatPrecision(diff),
         });
     }
 
-    try writer.print("\n", .{});
+    return .{
+        .sign = sign,
+        .percent = percent,
+        .times = times,
+        .prev = previous,
+        .cur = current,
+    };
 }
 
 pub fn main() !void {
@@ -213,10 +283,22 @@ pub fn main() !void {
         return std.process.exit(1);
     }
 
-    // calculate percent difference between each pair
+    var rows: ArrayList(DiffItem) = ArrayList(DiffItem).init(allocator);
+    defer rows.deinit();
+    var maxes: Maxes = .{};
     var cur = nums.items[0];
     for (nums.items[1..]) |num| {
-        try fancyPrint(stdout, cur, num, raw);
+        const row = try makeRow(allocator, cur, num, raw);
+        if (row.percent.len > maxes.percent) maxes.percent = row.percent.len;
+        if (row.times.len > maxes.times) maxes.times = row.times.len;
+        if (row.prev.len > maxes.prev) maxes.prev = row.prev.len;
+        if (row.cur.len > maxes.cur) maxes.cur = row.cur.len;
+        try rows.append(row);
         if (!fixed) cur = num;
+    }
+
+    for (rows.items) |*row| {
+        try row.print(stdout, maxes);
+        row.deinit(allocator);
     }
 }
