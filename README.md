@@ -17,11 +17,13 @@ makes math as simple as typing a command.
 ### Basic Calculation:
 
 ```sh
-❯ pc 1 2 3 4 5
-↑    100%      2x  [     1 → 2     ]
-↑     50%   1.50x  [     2 → 3     ]
-↑  33.33%   1.33x  [     3 → 4     ]
-↑     25%   1.25x  [     4 → 5     ]
+❯ pc 18024 19503 11124 12321 340200 424212 1000000000
+↑       8.21%     1.08x  [ 17.60KiB → 19.05KiB ]
+↓     -42.96%     0.57x  [  19.0KiB → 10.9KiB  ]
+↑      10.76%     1.11x  [  10.9KiB → 12.0KiB  ]
+↑    2661.14%    27.61x  [    12KiB → 332KiB   ]
+↑      24.69%     1.25x  [ 332.2KiB → 414.3KiB ]
+↑  235631.20%  2357.31x  [   414KiB → 954MiB   ]
 ```
 
 ### Friendly Sizes by Default 🎓
@@ -31,23 +33,23 @@ converting them into friendly sizes like GiB, MiB, KiB, etc.
 
 ```sh
 ❯ echo "1124122523 2421252122" | pc
-↑ 115.39%   2.15x  [  1.0GiB → 2.3GiB  ]
+↑  115.39%  2.15x  [ 1.0GiB → 2.3GiB ]
 ```
 
 Want to see the raw numbers instead? No problem, just pass the `-r` option:
 
 ```sh
 ❯ echo "1124122523 2421252122" | pc -r
-↑ 115.39%   2.15x  [1124122496 → 2421252096]
+↑  115.39%  2.15x  [ 1124122496 → 2421252096 ]
 ```
 
 ### Custom Delimiters? Sure!
 
 ```sh
 ❯ echo "15@20@3 6" | pc -d "@"
-↑  33.33%   1.33x  [    15 → 20    ]
-↓    -85%   0.15x  [    20 → 3     ]
-↑    100%      2x  [     3 → 6     ]
+↑  33.33%  1.33x  [ 15 → 20 ]
+↓    -85%  0.15x  [ 20 → 3  ]
+↑    100%     2x  [  3 → 6  ]
 ```
 
 ### Different Delimiters? No Problem!
@@ -62,8 +64,8 @@ By default `pc` uses the following delimiters: ` \n\t\r,;:|`.
 
 ```sh
 ❯ echo "128 221 150" | pc -f
-↑  72.66%   1.73x  [   128 → 221   ]
-↑  17.19%   1.17x  [   128 → 150   ]
+↑  72.66%  1.73x  [ 128 → 221 ]
+↑  17.19%  1.17x  [ 128 → 150 ]
 ```
 
 ### Full Command List:
