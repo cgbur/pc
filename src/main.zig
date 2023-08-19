@@ -191,7 +191,6 @@ fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
     } else {
         const prev_int: u64 = @intFromFloat(prev);
         const cur_int: u64 = @intFromFloat(cur);
-        std.debug.print("diff = {d}\n", .{diff});
         const precision = sizeFormatPrecision(diff);
         previous = try std.fmt.allocPrint(allocator, "{[prev]s:.[prec]}", .{
             .prev = std.fmt.fmtIntSizeBin(prev_int),
