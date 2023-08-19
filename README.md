@@ -93,4 +93,4 @@ cp zig-out/bin/pc ~/.local/bin/pc
 
 ## TODO 📝
 
-- \[ \] Treasure up the output to do proper formatting and alignment
+- \[ \] Think of more features to add
