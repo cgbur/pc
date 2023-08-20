@@ -1,18 +1,18 @@
-# `pc` - Terminal Percent Change 🚀
+# `pc` - Percent Change Calculator
 
 Ever been teased for not doing simple math in your head? Say no more! `pc` is
-here to save the day. Effortlessly calculate percent differences between
-numbers directly in your terminal. A lightweight, blazing-fast tool that
-makes math as simple as typing a command.
+here to save the day. Effortlessly calculate differences between numbers
+directly in your terminal. A lightweight, blazing-fast tool that makes math as
+simple as typing a command.
 
-### Features 🌟
+## ✨ Features
 
-- **Fashionable Output:** Make your numbers look good 🎩
-- **Always Accurate:** Calculates percent change correctly every time 🎯
-- **Blazing Fast:** Don't wait, get your results instantly 🚀
-- **Zig-Powered:** Crafted with love using Zig ❤️
+- 🔥 **Fashionable Output:** Human readable, colorful, and easy to understand
+- 🎯 **Always Accurate:** Calculates percent change correctly every time
+- 🚀 **Blazing Fast:** Don't wait, get your results instantly
+- ❤️ **Zig-Powered:** Crafted with love using Zig
 
-## Usage 🛠️
+## 🛠️ Usage
 
 ### Basic Calculation:
 
@@ -26,7 +26,7 @@ makes math as simple as typing a command.
 ↑  235631.20%  2357.31x  [   414KiB → 954MiB   ]
 ```
 
-### Friendly Sizes by Default 🎓
+### 🎓 Friendly Sizes by Default
 
 Large numbers are automatically converted into human-readable format by
 converting them into friendly sizes like GiB, MiB, KiB, etc.
@@ -74,13 +74,13 @@ By default `pc` uses the following delimiters: ` \n\t\r,;:|`.
 pc --help
 ```
 
-## Installation 📥
+## 📥 Installation
 
 ### Grab Prebuilt Binaries
 
 Get them from the [releases](https://github.com/cgbur/pc/releases) page.
 
-### Or Build from Source 🛠️
+### 🛠️ Or Build from Source
 
 You'll need [Zig](https://ziglang.org) to build from source.
 
@@ -91,6 +91,6 @@ zig build -Doptimize=ReleaseSafe
 cp zig-out/bin/pc ~/.local/bin/pc
 ```
 
-## TODO 📝
+## 📝 TODO
 
 - \[ \] Think of more features to add
