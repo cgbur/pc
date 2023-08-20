@@ -18,7 +18,7 @@ within the convenience of your terminal.
 
 ## 🛠️ Usage
 
-### Basic Calculation
+### 💻 Basic Calculation
 
 Compute percentage changes and differences effortlessly:
 
@@ -48,7 +48,7 @@ Need raw numbers? Use the `-r` option:
 ...
 ```
 
-### Flexibility with Delimiters
+### 🔀 Flexibility with Delimiters
 
 Customize input with different delimiters or use the default ones (` \n\t\r,;:|`):
 
@@ -57,7 +57,7 @@ Customize input with different delimiters or use the default ones (` \n\t\r,;:|`
 ...
 ```
 
-### Fixed Calculation
+### 📐 Fixed Calculation
 
 Evaluate changes relative to the first number:
 
@@ -70,6 +70,30 @@ For the full command list, simply run:
 
 ```sh
 pc --help
+```
+
+### 📄 Output Formats
+
+Specify the output format with the `--format` option. Currently, `pc` supports
+the following formats:
+
+- Human-readable (default)
+- JSON
+- CSV
+
+#### JSON Output
+
+```sh
+❯ pc 18024 19503 11124 --format json
+[{"percent":8.20572566986084e+00, ... }, ...]
+```
+
+#### CSV Output
+
+```sh
+❯ pc 18024 19503 11124 --format csv
+percent,times,prev,cur
+8.20572566986084,1.082057237625122,18024,19503, ...
 ```
 
 ## 📥 Installation

@@ -186,7 +186,7 @@ const Format = enum {
     }
 
     fn all() []const u8 {
-        return "default, csv, json";
+        return "csv, json";
     }
 };
 
