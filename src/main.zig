@@ -2,21 +2,10 @@ const std = @import("std");
 const builtin = @import("builtin");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
+const ColorConfig = std.io.tty.Config;
+const Color = std.io.tty.Color;
 
-pub const EscapeCodes = struct {
-    pub const dim = "\x1b[2m";
-    pub const pink = "\x1b[38;5;205m";
-    pub const white = "\x1b[37m";
-    pub const red = "\x1b[31m";
-    pub const yellow = "\x1b[33m";
-    pub const green = "\x1b[32m";
-    pub const magenta = "\x1b[35m";
-    pub const cyan = "\x1b[36m";
-    pub const reset = "\x1b[0m";
-    pub const erase_line = "\x1b[2K\r";
-};
-
-const version = "1.0.0";
+const version = "1.1.0";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
@@ -35,6 +24,7 @@ const usage_text: []const u8 =
     \\                      Example: echo "1,2,3" | pc -d ","
     \\  -f, --fixed       : All percent changes are calculated relative to the first number.
     \\  -r, --raw         : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
+    \\      --[no-]color  : Enable/disable color output (default: auto).
     \\
     \\Symbols:
     \\  ↑                 : Indicates a positive percent change.
@@ -148,11 +138,31 @@ const Sign = enum {
         };
     }
 
-    fn color(s: Sign) []const u8 {
+    fn color(s: Sign) Color {
         return switch (s) {
-            .Positive => EscapeCodes.green,
-            .Negative => EscapeCodes.red,
-            .Neutral => EscapeCodes.white,
+            .Positive => Color.green,
+            .Negative => Color.red,
+            .Neutral => Color.white,
+        };
+    }
+};
+
+const ColorChoice = enum {
+    Auto,
+    Always,
+    Never,
+
+    fn colorConfig(self: ColorChoice, file: std.fs.File) ColorConfig {
+        return switch (self) {
+            .Auto => {
+                if (file.isTty() and file.supportsAnsiEscapeCodes()) {
+                    return .escape_codes;
+                } else {
+                    return .no_color;
+                }
+            },
+            .Always => .escape_codes,
+            .Never => .no_color,
         };
     }
 };
@@ -173,19 +183,19 @@ const DiffItem = struct {
         allocator.free(self.cur);
     }
 
-    fn print(self: *DiffItem, writer: anytype, maxes: anytype) !void {
-        try writer.print("{[color]s}{[sign]s}", .{
-            .sign = Sign.arrow(self.sign),
-            .color = self.sign.color(),
+    fn print(self: *DiffItem, writer: anytype, maxes: Maxes, colorizer: ColorConfig) !void {
+        try colorizer.setColor(writer, self.sign.color());
+        try writer.print("{[sign]s}", .{
+            .sign = self.sign.arrow(),
         });
 
-        try writer.print(" {[perc]s: >[perc_padding]}% {[times]s: >[times_padding]}x {[reset]s}", .{
+        try writer.print(" {[perc]s: >[perc_padding]}% {[times]s: >[times_padding]}x ", .{
             .perc = self.percent,
             .perc_padding = maxes.percent + 1,
             .times = self.times,
             .times_padding = maxes.times + 1,
-            .reset = EscapeCodes.reset,
         });
+        try colorizer.setColor(writer, Color.reset);
 
         try writer.print(" [ {[prev]s: >[prev_padding]} → {[cur]s: <[cur_padding]} ]", .{
             .prev = self.prev,
@@ -267,7 +277,9 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
-    var stdout_buf = std.io.bufferedWriter(std.io.getStdOut().writer());
+
+    const ouput_handle = std.io.getStdOut();
+    var stdout_buf = std.io.bufferedWriter(ouput_handle.writer());
     defer stdout_buf.flush() catch {};
     var stdout = stdout_buf.writer();
 
@@ -282,6 +294,7 @@ pub fn main() !void {
     }
     var fixed = false;
     var raw = false;
+    var color: ColorChoice = .Auto;
 
     // parse args
     var arg_i: usize = 1;
@@ -310,6 +323,10 @@ pub fn main() !void {
             for (delim) |c| {
                 try delims.append(c);
             }
+        } else if (std.mem.eql(u8, arg, "--color")) {
+            color = .Always;
+        } else if (std.mem.eql(u8, arg, "--no-color")) {
+            color = .Never;
         } else if (std.mem.eql(u8, arg, "-")) {
             break;
         } else if (parseNum(arg)) |num| {
@@ -351,8 +368,9 @@ pub fn main() !void {
         if (!fixed) cur = num;
     }
 
+    const color_config = color.colorConfig(ouput_handle);
     for (rows.items) |*row| {
-        try row.print(stdout, maxes);
+        try row.print(stdout, maxes, color_config);
         row.deinit(allocator);
     }
 }
