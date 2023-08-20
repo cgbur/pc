@@ -5,7 +5,7 @@ const ArrayList = std.ArrayList;
 const ColorConfig = std.io.tty.Config;
 const Color = std.io.tty.Color;
 
-const version = "1.1.0";
+const version = "1.2.0";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
@@ -25,6 +25,7 @@ const usage_text: []const u8 =
     \\  -f, --fixed       : All percent changes are calculated relative to the first number.
     \\  -r, --raw         : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
     \\      --[no-]color  : Enable/disable color output (default: auto).
+    \\      --format <f>  : Specify a format to use for output (options: json, csv).
     \\
     \\Symbols:
     \\  ↑                 : Indicates a positive percent change.
@@ -167,23 +168,120 @@ const ColorChoice = enum {
     }
 };
 
+const Format = enum {
+    Default,
+    Csv,
+    Json,
+
+    fn fromStr(s: []const u8) ?Format {
+        if (std.mem.eql(u8, s, "default")) {
+            return .Default;
+        } else if (std.mem.eql(u8, s, "csv")) {
+            return .Csv;
+        } else if (std.mem.eql(u8, s, "json")) {
+            return .Json;
+        } else {
+            return null;
+        }
+    }
+
+    fn all() []const u8 {
+        return "csv, json";
+    }
+};
+
+const Row = struct {
+    const Self = @This();
+
+    percent: f32,
+    times: f32,
+    prev: f32,
+    cur: f32,
+
+    fn init(prev: f32, cur: f32) Self {
+        return .{
+            .percent = percentDiff(prev, cur),
+            .times = timesDiff(prev, cur),
+            .prev = prev,
+            .cur = cur,
+        };
+    }
+};
+
 /// A single item in the diff table. Holds strings that are pre-formatted so we
 /// can calculate the padding for each column.
-const DiffItem = struct {
+const StringRow = struct {
+    const Self = @This();
+
     sign: Sign,
     percent: []const u8,
     times: []const u8,
     prev: []const u8,
     cur: []const u8,
 
-    fn deinit(self: *DiffItem, allocator: Allocator) void {
+    fn init(allocator: Allocator, row: Row, raw: bool) !Self {
+        const prev = row.prev;
+        const cur = row.cur;
+        const percent_diff = row.percent;
+        const times_diff = row.times;
+
+        const sign = Sign.fromNum(percent_diff);
+
+        const percent = try std.fmt.allocPrint(allocator, "{[perc]d:.[diff_prec]}", .{
+            .perc = percent_diff,
+            .diff_prec = sizeFormatPrecision(percent_diff),
+        });
+
+        const times = try std.fmt.allocPrint(allocator, "{[times]d:.[times_prec]}", .{
+            .times = times_diff,
+            .times_prec = sizeFormatPrecision(times_diff),
+        });
+
+        var previous: []const u8 = undefined;
+        var current: []const u8 = undefined;
+        const nums_are_small = (prev < 1000.0 and cur < 1000.0);
+        const any_are_negative = (prev < 0.0 or cur < 0.0);
+        const wont_fit_in_u64 = (prev > std.math.maxInt(u64) or cur > std.math.maxInt(u64));
+        if (raw or nums_are_small or any_are_negative or wont_fit_in_u64) {
+            previous = try std.fmt.allocPrint(allocator, "{[prev]d:.[prev_prec]}", .{
+                .prev = prev,
+                .prev_prec = numberPrecision(prev),
+            });
+            current = try std.fmt.allocPrint(allocator, "{[cur]d:.[cur_prec]}", .{
+                .cur = cur,
+                .cur_prec = numberPrecision(cur),
+            });
+        } else {
+            const prev_int: u64 = @intFromFloat(prev);
+            const cur_int: u64 = @intFromFloat(cur);
+            const precision = sizeFormatPrecision(percent_diff);
+            previous = try std.fmt.allocPrint(allocator, "{[prev]s:.[prec]}", .{
+                .prev = std.fmt.fmtIntSizeBin(prev_int),
+                .prec = precision,
+            });
+            current = try std.fmt.allocPrint(allocator, "{[cur]s:.[prec]}", .{
+                .cur = std.fmt.fmtIntSizeBin(cur_int),
+                .prec = precision,
+            });
+        }
+
+        return .{
+            .sign = sign,
+            .percent = percent,
+            .times = times,
+            .prev = previous,
+            .cur = current,
+        };
+    }
+
+    fn deinit(self: *Self, allocator: Allocator) void {
         allocator.free(self.percent);
         allocator.free(self.times);
         allocator.free(self.prev);
         allocator.free(self.cur);
     }
 
-    fn print(self: *DiffItem, writer: anytype, maxes: Maxes, colorizer: ColorConfig) !void {
+    fn print(self: *Self, writer: anytype, maxes: Maxes, colorizer: ColorConfig) !void {
         try colorizer.setColor(writer, self.sign.color());
         try writer.print("{[sign]s}", .{
             .sign = self.sign.arrow(),
@@ -215,58 +313,6 @@ const Maxes = struct {
     cur: usize = 0,
 };
 
-fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
-    const percent_diff = percentDiff(prev, cur);
-    const times_diff = timesDiff(prev, cur);
-    const sign = Sign.fromNum(percent_diff);
-
-    const percent = try std.fmt.allocPrint(allocator, "{[perc]d:.[diff_prec]}", .{
-        .perc = percent_diff,
-        .diff_prec = sizeFormatPrecision(percent_diff),
-    });
-
-    const times = try std.fmt.allocPrint(allocator, "{[times]d:.[times_prec]}", .{
-        .times = times_diff,
-        .times_prec = sizeFormatPrecision(times_diff),
-    });
-
-    var previous: []const u8 = undefined;
-    var current: []const u8 = undefined;
-    const nums_are_small = (prev < 1000.0 and cur < 1000.0);
-    const any_are_negative = (prev < 0.0 or cur < 0.0);
-    const wont_fit_in_u64 = (prev > std.math.maxInt(u64) or cur > std.math.maxInt(u64));
-    if (raw or nums_are_small or any_are_negative or wont_fit_in_u64) {
-        previous = try std.fmt.allocPrint(allocator, "{[prev]d:.[prev_prec]}", .{
-            .prev = prev,
-            .prev_prec = numberPrecision(prev),
-        });
-        current = try std.fmt.allocPrint(allocator, "{[cur]d:.[cur_prec]}", .{
-            .cur = cur,
-            .cur_prec = numberPrecision(cur),
-        });
-    } else {
-        const prev_int: u64 = @intFromFloat(prev);
-        const cur_int: u64 = @intFromFloat(cur);
-        const precision = sizeFormatPrecision(percent_diff);
-        previous = try std.fmt.allocPrint(allocator, "{[prev]s:.[prec]}", .{
-            .prev = std.fmt.fmtIntSizeBin(prev_int),
-            .prec = precision,
-        });
-        current = try std.fmt.allocPrint(allocator, "{[cur]s:.[prec]}", .{
-            .cur = std.fmt.fmtIntSizeBin(cur_int),
-            .prec = precision,
-        });
-    }
-
-    return .{
-        .sign = sign,
-        .percent = percent,
-        .times = times,
-        .prev = previous,
-        .cur = current,
-    };
-}
-
 pub fn main() !void {
     if (builtin.os.tag == .windows) {
         // On Windows, the console's character encoding might not be UTF-8. Set the
@@ -295,6 +341,7 @@ pub fn main() !void {
     var fixed = false;
     var raw = false;
     var color: ColorChoice = .Auto;
+    var format: Format = .Default;
 
     // parse args
     var arg_i: usize = 1;
@@ -322,6 +369,21 @@ pub fn main() !void {
             const delim = args[arg_i];
             for (delim) |c| {
                 try delims.append(c);
+            }
+        } else if (std.mem.eql(u8, arg, "--format")) {
+            arg_i += 1;
+            if (arg_i >= args.len) {
+                std.debug.print("pc: missing argument for {s}\n", .{arg});
+                try stdout.writeAll(usage_text);
+                return std.process.exit(1);
+            }
+            const format_str = args[arg_i];
+            if (Format.fromStr(format_str)) |f| {
+                format = f;
+            } else {
+                std.debug.print("pc: invalid format: {s}. valid formats are: {s}\n", .{ format_str, Format.all() });
+                try stdout.writeAll(usage_text);
+                return std.process.exit(1);
             }
         } else if (std.mem.eql(u8, arg, "--color")) {
             color = .Always;
@@ -354,23 +416,45 @@ pub fn main() !void {
         return std.process.exit(1);
     }
 
-    var rows: ArrayList(DiffItem) = ArrayList(DiffItem).init(allocator);
+    // construct the base type, collecting all the rows
+    var rows: ArrayList(Row) = ArrayList(Row).init(allocator);
     defer rows.deinit();
-    var maxes: Maxes = .{};
     var cur = nums.items[0];
     for (nums.items[1..]) |num| {
-        const row = try makeRow(allocator, cur, num, raw);
-        if (row.percent.len > maxes.percent) maxes.percent = row.percent.len;
-        if (row.times.len > maxes.times) maxes.times = row.times.len;
-        if (row.prev.len > maxes.prev) maxes.prev = row.prev.len;
-        if (row.cur.len > maxes.cur) maxes.cur = row.cur.len;
+        const row = Row.init(cur, num);
         try rows.append(row);
         if (!fixed) cur = num;
     }
 
-    const color_config = color.colorConfig(ouput_handle);
-    for (rows.items) |*row| {
-        try row.print(stdout, maxes, color_config);
-        row.deinit(allocator);
+    switch (format) {
+        .Default => {
+            var string_rows: ArrayList(StringRow) = ArrayList(StringRow).init(allocator);
+            defer string_rows.deinit();
+            var maxes: Maxes = .{};
+            for (rows.items) |row| {
+                const srow = try StringRow.init(allocator, row, raw);
+                try string_rows.append(srow);
+                if (srow.percent.len > maxes.percent) maxes.percent = srow.percent.len;
+                if (srow.times.len > maxes.times) maxes.times = srow.times.len;
+                if (srow.prev.len > maxes.prev) maxes.prev = srow.prev.len;
+                if (srow.cur.len > maxes.cur) maxes.cur = srow.cur.len;
+            }
+
+            const color_config = color.colorConfig(ouput_handle);
+            for (string_rows.items) |*row| {
+                try row.print(stdout, maxes, color_config);
+                row.deinit(allocator);
+            }
+        },
+        .Csv => {
+            try stdout.print("percent,times,prev,cur\n", .{});
+            for (rows.items) |row| {
+                try stdout.print("{d},{d},{d},{d}\n", .{ row.percent, row.times, row.prev, row.cur });
+            }
+        },
+        .Json => {
+            try std.json.stringify(rows.items, .{}, stdout);
+            try stdout.print("\n", .{});
+        },
     }
 }
