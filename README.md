@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/usage.png" alt="Usage Example" width="600">
+</p>
+
 # `pc` - Percent Change Calculator
 
 Ever been teased for not doing simple math in your head? Say no more! `pc` is
