@@ -23,7 +23,7 @@ const usage_text: []const u8 =
     \\Calculate the percent change between numbers.
     \\
     \\Arguments:
-    \\  numbers...        : A sequence of numbers for which the percent change is to be calculated.
+    \\  numbers...        : A sequence of numbers for which the differences are to be calculated.
     \\
     \\Special Arguments:
     \\  -                 : Reads input from stdin.
@@ -212,12 +212,12 @@ fn makeRow(allocator: Allocator, prev: f32, cur: f32, raw: bool) !DiffItem {
 
     const percent = try std.fmt.allocPrint(allocator, "{[perc]d:.[diff_prec]}", .{
         .perc = percent_diff,
-        .diff_prec = numberPrecision(percent_diff),
+        .diff_prec = sizeFormatPrecision(percent_diff),
     });
 
     const times = try std.fmt.allocPrint(allocator, "{[times]d:.[times_prec]}", .{
         .times = times_diff,
-        .times_prec = numberPrecision(times_diff),
+        .times_prec = sizeFormatPrecision(times_diff),
     });
 
     var previous: []const u8 = undefined;
