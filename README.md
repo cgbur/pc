@@ -2,7 +2,7 @@
   <img src="assets/usage.png" alt="Usage Example" width="600">
 </p>
 
-# `pc` - Percent Change Calculator
+# `pc` - Change Calculator for the Terminal
 
 Ever been teased for not doing simple math in your head? Say no more! `pc` is
 here to save the day. Effortlessly calculate differences between numbers
