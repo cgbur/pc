@@ -18,7 +18,7 @@ within the convenience of your terminal.
 
 ## 🛠️ Usage
 
-### Basic Calculation:
+### Basic Calculation
 
 Compute percentage changes and differences effortlessly:
 
@@ -57,7 +57,7 @@ Customize input with different delimiters or use the default ones (` \n\t\r,;:|`
 ...
 ```
 
-### Fixed Calculation:
+### Fixed Calculation
 
 Evaluate changes relative to the first number:
 
