@@ -20,7 +20,7 @@ const version = "0.2.3";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: pc [numbers...] or ... | pc
-    \\Calculate the percent change between numbers.
+    \\Calculate the percent change and times difference between a sequence of numbers.
     \\
     \\Arguments:
     \\  numbers...        : A sequence of numbers for which the differences are to be calculated.
