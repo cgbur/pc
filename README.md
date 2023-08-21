@@ -66,12 +66,6 @@ Evaluate changes relative to the first number:
 ...
 ```
 
-For the full command list, simply run:
-
-```sh
-pc --help
-```
-
 ### 📄 Output Formats
 
 Specify the output format with the `--format` option. Currently, `pc` supports
@@ -94,6 +88,12 @@ the following formats:
 ❯ pc 18024 19503 11124 --format csv
 percent,times,prev,cur
 8.20572566986084,1.082057237625122,18024,19503, ...
+```
+
+For the full command list, simply run:
+
+```sh
+pc --help
 ```
 
 ## 📥 Installation
