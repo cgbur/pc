@@ -286,7 +286,6 @@ const StringRow = struct {
         try writer.print("{[sign]s}", .{
             .sign = self.sign.arrow(),
         });
-
         try writer.print(" {[perc]s: >[perc_padding]}% {[times]s: >[times_padding]}x ", .{
             .perc = self.percent,
             .perc_padding = maxes.percent + 1,
@@ -294,14 +293,12 @@ const StringRow = struct {
             .times_padding = maxes.times + 1,
         });
         try colorizer.setColor(writer, Color.reset);
-
         try writer.print(" [ {[prev]s: >[prev_padding]} → {[cur]s: <[cur_padding]} ]", .{
             .prev = self.prev,
             .cur = self.cur,
             .prev_padding = maxes.prev,
             .cur_padding = maxes.cur,
         });
-
         try writer.print("\n", .{});
     }
 };
