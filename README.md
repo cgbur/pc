@@ -136,7 +136,7 @@ Find them on the [releases](https://github.com/cgbur/pc/releases) page.
 #### Installation Example for Linux (x86_64)
 
 ```bash
-curl -o pc https://github.com/cgbur/pc/releases/latest/download/x86_64-linux-pc
+wget -O pc https://github.com/cgbur/pc/releases/latest/download/x86_64-linux-pc
 chmod +x pc
 mv pc ~/.local/bin/pc
 ```
@@ -153,12 +153,6 @@ cd pc
 zig build -Doptimize=ReleaseSafe
 cp zig-out/bin/pc ~/.local/bin/pc
 ```
-
-## 📝 Future Plans
-
-- \[ \] Think of more features to add
-
-This revised section integrates your request into the original structure, keeping everything concise and to the point.
 
 ## 📝 Future Plans
 
