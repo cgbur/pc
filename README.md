@@ -37,15 +37,15 @@ Compute percentage changes and differences effortlessly:
 Large numbers are automatically translated into familiar sizes like GiB, MiB, KiB:
 
 ```sh
-❯ echo "1124122523 2421252122" | pc
-↑  115.39%  2.15x  [ 1.0GiB → 2.3GiB ]
+❯ pc 1124122523 2421252122
+↑  115.4%  2.15x  [ 1.0GiB → 2.3GiB ]
 ```
 
 Need raw numbers? Use the `-r` option:
 
 ```sh
-❯ echo "1124122523 2421252122" | pc -r
-...
+❯ pc 1124122523 2421252122 -r
+↑  115.4%  2.15x  [ 1124122496 → 2421252096 ]
 ```
 
 ### 🔀 Flexibility with Delimiters
@@ -55,7 +55,9 @@ the `--delimiters` or `-d` option to specify additional delimiters:
 
 ```sh
 ❯ echo "15@20@3 6" | pc -d "@"
-...
+↑  33.3%  1.33x  [ 15 → 20 ]
+↓   -85%  0.15x  [ 20 → 3  ]
+↑   100%     2x  [  3 → 6  ]
 ```
 
 ### 📐 Fixed Calculation
@@ -103,16 +105,23 @@ the following formats:
 #### JSON Output
 
 ```sh
-❯ pc 18024 19503 11124 --format json
-[{"percent":8.20572566986084e+00, ... }, ...]
+❯ pc 18024 19503 --format json | jq
+[
+  {
+    "percent": 8.20572566986084,
+    "times": 1.082057237625122,
+    "prev": 18024,
+    "cur": 19503
+  }
+]
 ```
 
 #### CSV Output
 
 ```sh
-❯ pc 18024 19503 11124 --format csv
+❯ pc 18024 19503 --format csv
 percent,times,prev,cur
-8.20572566986084,1.082057237625122,18024,19503, ...
+8.20572566986084,1.082057237625122,18024,19503
 ```
 
 For the full command list, simply run:
