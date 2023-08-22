@@ -50,7 +50,8 @@ Need raw numbers? Use the `-r` option:
 
 ### 🔀 Flexibility with Delimiters
 
-Customize input with different delimiters or use the default ones (` \n\t\r,;:|`):
+By default, `pc` tokenizes the input with the default delimiters (` \n\t\r,;:|`). Use
+the `--delimiters` or `-d` option to specify additional delimiters:
 
 ```sh
 ❯ echo "15@20@3 6" | pc -d "@"
