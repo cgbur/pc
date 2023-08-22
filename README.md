@@ -127,6 +127,22 @@ pc --help
 
 Find them on the [releases](https://github.com/cgbur/pc/releases) page.
 
+#### Supported Releases
+
+- Linux: `aarch64-linux-pc`, `riscv64-linux-pc`, `x86_64-linux-pc`
+- macOS: `aarch64-macos-pc`
+- Windows: `x86_64-windows-pc.exe`
+
+#### Installation Example for Linux (x86_64)
+
+```bash
+curl -o pc https://github.com/cgbur/pc/releases/latest/download/x86_64-linux-pc
+chmod +x pc
+mv pc ~/.local/bin/pc
+```
+
+Replace the file name in the URL with the corresponding one for other Linux architectures.
+
 ### Build from Source
 
 To build from source, you'll need [Zig](https://ziglang.org):
@@ -137,6 +153,12 @@ cd pc
 zig build -Doptimize=ReleaseSafe
 cp zig-out/bin/pc ~/.local/bin/pc
 ```
+
+## 📝 Future Plans
+
+- \[ \] Think of more features to add
+
+This revised section integrates your request into the original structure, keeping everything concise and to the point.
 
 ## 📝 Future Plans
 
