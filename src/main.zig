@@ -5,7 +5,7 @@ const ArrayList = std.ArrayList;
 const ColorConfig = std.io.tty.Config;
 const Color = std.io.tty.Color;
 
-const version = "1.2.0";
+const version = "1.3.0";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: 
