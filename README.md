@@ -61,7 +61,7 @@ the `--delimiters` or `-d` option to specify additional delimiters:
 ### 📐 Fixed Calculation
 
 Use the `--fixed` or `-f` flags to evaluate changes relative to a specific
-reference point in your series. You can specify positive or negative indexes to
+reference point in your series. You can specify positive or negative indices to
 choose the reference number.
 
 Evaluate changes relative to the first number (default):
