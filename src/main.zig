@@ -96,11 +96,18 @@ fn numberPrecision(num: f32) u8 {
     }
 }
 
+/// Returns the precision to use for formatting a number based on how far it is
+/// from 0. Numbers that are closer to 0 will have more decimal places. Whole
+/// numbers will have no decimal places.
 fn sizeFormatPrecision(num: f32) u8 {
     var diff: u64 = 0;
     if (std.math.isInf(num)) {
         diff = std.math.maxInt(u64);
     } else {
+        // no decimal places if its whole
+        if (@floor(num) == num) {
+            return 0;
+        }
         const rounded = @round(@fabs(num));
         if (rounded > std.math.maxInt(u64)) {
             diff = std.math.maxInt(u64);
