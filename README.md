@@ -50,7 +50,8 @@ Need raw numbers? Use the `-r` option:
 
 ### 🔀 Flexibility with Delimiters
 
-Customize input with different delimiters or use the default ones (` \n\t\r,;:|`):
+By default, `pc` tokenizes the input with the default delimiters (` \n\t\r,;:|`). Use
+the `--delimiters` or `-d` option to specify additional delimiters:
 
 ```sh
 ❯ echo "15@20@3 6" | pc -d "@"
@@ -59,11 +60,35 @@ Customize input with different delimiters or use the default ones (` \n\t\r,;:|`
 
 ### 📐 Fixed Calculation
 
-Evaluate changes relative to the first number:
+Use the `--fixed` or `-f` flags to evaluate changes relative to a specific
+reference point in your series. You can specify positive or negative indexes to
+choose the reference number.
+
+Evaluate changes relative to the first number (default):
 
 ```sh
-❯ echo "128 221 150" | pc -f
-...
+❯ pc 1 2 3 4 -f
+↑  100%  2x  [ 1 → 2 ]
+↑  200%  3x  [ 1 → 3 ]
+↑  300%  4x  [ 1 → 4 ]
+```
+
+Or choose a different reference point (zero-based):
+
+```sh
+❯ pc 1 2 3 4 -f 2
+↓  -66.7%  0.33x  [ 3 → 1 ]
+↓  -33.3%  0.67x  [ 3 → 2 ]
+↑   33.3%  1.33x  [ 3 → 4 ]
+```
+
+Or index from the end of the series with negative numbers:
+
+```sh
+❯ pc 1 2 3 4 -f -1
+↓  -75%  0.25x  [ 4 → 1 ]
+↓  -50%  0.50x  [ 4 → 2 ]
+↓  -25%  0.75x  [ 4 → 3 ]
 ```
 
 ### 📄 Output Formats

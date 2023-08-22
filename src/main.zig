@@ -8,35 +8,38 @@ const Color = std.io.tty.Color;
 const version = "1.2.0";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
-    \\Usage: pc [numbers...] or ... | pc
-    \\Calculate the percent change and times difference between a sequence of numbers.
+    \\Usage: 
+    \\  pc [numbers...] or ... | pc
+    \\  Calculate the percent change and times difference between a sequence of numbers.
     \\
     \\Arguments:
-    \\  numbers...        : A sequence of numbers for which the differences are to be calculated.
-    \\
-    \\Special Arguments:
-    \\  -                 : Reads input from stdin.
+    \\  numbers...         : A sequence of numbers for which the differences are to be calculated.
+    \\  Special Arguments:
+    \\    -                : Reads input from stdin.
     \\
     \\Options:
-    \\  -h, --help        : Show this help message and exit.
-    \\  -v, --version     : Show version information and exit.
-    \\  -d, --delimiters  : Specify extra delimiter(s) to use for parsing (defaults: " \t\n\r|,;:").
-    \\                      Example: echo "1,2,3" | pc -d ","
-    \\  -f, --fixed       : All percent changes are calculated relative to the first number.
-    \\  -r, --raw         : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
-    \\      --[no-]color  : Enable/disable color output (default: auto).
-    \\      --format <f>  : Specify a format to use for output (options: json, csv).
+    \\  -h, --help         : Show this help message and exit.
+    \\  -v, --version      : Show version information and exit.
+    \\  -d, --delimiters   : Specify extra delimiters (defaults: " \t\n\r|,;").
+    \\                       Example: echo "1,2,3" | pc -d ","
+    \\  -f, --fixed [N]    : Changes are relative to Nth number (default: 0).
+    \\                       Examples:
+    \\                         echo "1,2,3" | pc -f 1  (second element)
+    \\                         echo "1,2,3" | pc -f -1 (last element)
+    \\  -r, --raw          : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
+    \\      --[no-]color   : Enable/disable color output (default: auto).
+    \\      --format <f>   : Specify output format (options: json, csv).
     \\
     \\Symbols:
-    \\  ↑                 : Indicates a positive percent change.
-    \\  ↓                 : Indicates a negative percent change.
-    \\  →                 : Indicates no change.
+    \\  ↑                 : Positive percent change.
+    \\  ↓                 : Negative percent change.
+    \\  →                 : No change.
     \\
     \\Notes:
-    \\  - At least 2 numbers are required for calculation.
-    \\  - Invalid numbers in the sequence will be skipped.
+    \\  - At least 2 numbers required for calculation.
+    \\  - Invalid numbers in sequence will be skipped.
     \\
-    \\Example:
+    \\Examples:
     \\  pc 10 20 30
     \\  echo "10,20,30" | pc -d ","
     \\  echo "128 221 150" | pc -f
@@ -317,6 +320,11 @@ const Maxes = struct {
     cur: usize = 0,
 };
 
+const ComparisonTarget = union(enum) {
+    Moving,
+    Fixed: i64,
+};
+
 pub fn main() !void {
     if (builtin.os.tag == .windows) {
         // On Windows, the console's character encoding might not be UTF-8. Set the
@@ -342,7 +350,7 @@ pub fn main() !void {
     inline for (default_delims) |delim| {
         try delims.append(delim);
     }
-    var fixed = false;
+    var target: ComparisonTarget = .Moving;
     var raw = false;
     var color: ColorChoice = .Auto;
     var format: Format = .Default;
@@ -360,7 +368,18 @@ pub fn main() !void {
             try stdout_buf.flush();
             return std.process.cleanExit();
         } else if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--fixed")) {
-            fixed = true;
+            target = ComparisonTarget{ .Fixed = 0 }; // default to 0
+            if (arg_i + 1 < args.len) {
+                // Try to parse, if we succeed thats the value, otherwise its a
+                // flag. If the number is too large, it will be ignored and then
+                // parsed as a number to be compared against.
+                const next_arg = args[arg_i + 1];
+                if (std.fmt.parseInt(i64, next_arg, 10) catch null) |fixed_val| {
+                    target = ComparisonTarget{ .Fixed = fixed_val };
+                    arg_i += 1;
+                    continue;
+                }
+            }
         } else if (std.mem.eql(u8, arg, "-r") or std.mem.eql(u8, arg, "--raw")) {
             raw = true;
         } else if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--delimiters")) {
@@ -423,11 +442,25 @@ pub fn main() !void {
     // construct the base type, collecting all the rows
     var rows: ArrayList(Row) = ArrayList(Row).init(allocator);
     defer rows.deinit();
-    var cur = nums.items[0];
-    for (nums.items[1..]) |num| {
+
+    // calculate the current index based on the target
+    var cur_idx = switch (target) {
+        .Moving => 0, // start at the first number
+        .Fixed => |index| blk: {
+            // account for negative indices and clamp
+            const nums_len: i64 = @intCast(nums.items.len);
+            const adjusted_index = if (index < 0) nums_len + index else index;
+            const final_idx: usize = @intCast(std.math.clamp(adjusted_index, 0, nums_len - 1));
+            break :blk final_idx;
+        },
+    };
+
+    var cur = nums.items[cur_idx];
+    for (nums.items, 0..) |num, i| {
+        if (i == cur_idx) continue;
         const row = Row.init(cur, num);
         try rows.append(row);
-        if (!fixed) cur = num;
+        if (target == .Moving) cur = num;
     }
 
     switch (format) {
