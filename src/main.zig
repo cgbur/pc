@@ -22,9 +22,9 @@ const usage_text: []const u8 =
     \\  -v, --version      : Show version information and exit.
     \\  -d, --delimiters   : Specify extra delimiters (defaults: " \t\n\r|,;").
     \\                       Example: echo "1,2,3" | pc -d ","
-    \\  -f, --fixed [N]    : Changes are relative to Nth number (default: 0).
+    \\  -f, --fixed [N]    : Changes are relative to Nth number (default: 1).
     \\                       Examples:
-    \\                         echo "1,2,3" | pc -f 1  (second element)
+    \\                         echo "1,2,3" | pc -f 2  (second element)
     \\                         echo "1,2,3" | pc -f -1 (last element)
     \\  -r, --raw          : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
     \\      --[no-]color   : Enable/disable color output (default: auto).
@@ -322,7 +322,7 @@ const Maxes = struct {
 
 const ComparisonTarget = union(enum) {
     Moving,
-    Fixed: i64,
+    Fixed: i64, // 1 based, 0 and 1 are the same
 };
 
 pub fn main() !void {
@@ -449,7 +449,7 @@ pub fn main() !void {
         .Fixed => |index| blk: {
             // account for negative indices and clamp
             const nums_len: i64 = @intCast(nums.items.len);
-            const adjusted_index = if (index < 0) nums_len + index else index;
+            const adjusted_index = if (index < 0) nums_len + index else index - 1; // 1 based
             const final_idx: usize = @intCast(std.math.clamp(adjusted_index, 0, nums_len - 1));
             break :blk final_idx;
         },
