@@ -75,13 +75,13 @@ Evaluate changes relative to the first number (default):
 ↑  300%  4x  [ 1 → 4 ]
 ```
 
-Or choose a different reference point (zero-based):
+Or choose a different reference point (one-based):
 
 ```sh
 ❯ pc 1 2 3 4 -f 2
-↓  -66.7%  0.33x  [ 3 → 1 ]
-↓  -33.3%  0.67x  [ 3 → 2 ]
-↑   33.3%  1.33x  [ 3 → 4 ]
+↓  -50%  0.50x  [ 2 → 1 ]
+↑   50%  1.50x  [ 2 → 3 ]
+↑  100%     2x  [ 2 → 4 ]
 ```
 
 Or index from the end of the series with negative numbers:
