@@ -5,7 +5,7 @@ const ArrayList = std.ArrayList;
 const ColorConfig = std.io.tty.Config;
 const Color = std.io.tty.Color;
 
-const version = "1.3.1";
+const version = "1.3.2";
 const default_delims = " \t\n\r|,;:";
 const usage_text: []const u8 =
     \\Usage: 
@@ -29,6 +29,7 @@ const usage_text: []const u8 =
     \\  -r, --raw          : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
     \\      --[no-]color   : Enable/disable color output (default: auto).
     \\      --format <f>   : Specify output format (options: json, csv).
+    \\  -w, --warnings     : Show warnings for invalid numbers (default: false).
     \\
     \\Symbols:
     \\  ↑                 : Positive percent change.
@@ -47,9 +48,9 @@ const usage_text: []const u8 =
     \\
 ;
 
-fn parseNum(s: []const u8) ?f32 {
+fn parseNum(s: []const u8, print_warning: bool) ?f32 {
     const val = std.fmt.parseFloat(f32, s) catch {
-        std.debug.print("skipping invalid number: '{s}'\n", .{s});
+        if (print_warning) std.debug.print("skipping invalid number: '{s}'\n", .{s});
         return null;
     };
     return val;
@@ -354,6 +355,7 @@ pub fn main() !void {
     var raw = false;
     var color: ColorChoice = .Auto;
     var format: Format = .Default;
+    var print_warnings: bool = false;
 
     // parse args
     var arg_i: usize = 1;
@@ -412,9 +414,11 @@ pub fn main() !void {
             color = .Always;
         } else if (std.mem.eql(u8, arg, "--no-color")) {
             color = .Never;
+        } else if (std.mem.eql(u8, arg, "-w") or std.mem.eql(u8, arg, "--warnings")) {
+            print_warnings = true;
         } else if (std.mem.eql(u8, arg, "-")) {
             break;
-        } else if (parseNum(arg)) |num| {
+        } else if (parseNum(arg, print_warnings)) |num| {
             try nums.append(num);
         }
     }
@@ -427,7 +431,7 @@ pub fn main() !void {
         };
         var it = std.mem.tokenizeAny(u8, input, delims.items);
         while (it.next()) |s| {
-            if (parseNum(s)) |num| {
+            if (parseNum(s, print_warnings)) |num| {
                 try nums.append(num);
             }
         }
