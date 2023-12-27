@@ -1,0 +1,2 @@
+pc 50 1200 3432 23 0 0 --format json
+[{"percent":2.3e+03,"times":2.4e+01,"prev":5.0e+01,"cur":1.2e+03},{"percent":1.86e+02,"times":2.859999895095825e+00,"prev":1.2e+03,"cur":3.432e+03},{"percent":-9.9329833984375e+01,"times":6.701631471514702e-03,"prev":3.432e+03,"cur":2.3e+01},{"percent":-1.0e+02,"times":0.0e+00,"prev":2.3e+01,"cur":0.0e+00},{"percent":0.0e+00,"times":0.0e+00,"prev":0.0e+00,"cur":0.0e+00}]

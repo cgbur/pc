@@ -60,8 +60,7 @@ fn percentDiff(a: f32, b: f32) f32 {
     if (a == 0) {
         return if (b == 0) 0.0 else std.math.inf(f32);
     }
-
-    return (b - a) / @fabs(a) * 100.0;
+    return (b - a) / @abs(a) * 100.0;
 }
 
 test "calculates percent differences correctly" {
@@ -93,7 +92,7 @@ test "calculates times differences correctly" {
 fn numberPrecision(num: f32) u8 {
     // if its a whole number, don't show decimal places otherwise, show up to 2
     // decimal places
-    if (@fabs(num - std.math.round(num)) < 0.001) {
+    if (@abs(num - std.math.round(num)) < 0.001) {
         return 0;
     } else {
         return 2;
@@ -112,7 +111,7 @@ fn sizeFormatPrecision(num: f32) u8 {
         if (@floor(num) == num) {
             return 0;
         }
-        const rounded = @round(@fabs(num));
+        const rounded = @round(@abs(num));
         if (rounded > std.math.maxInt(u64)) {
             diff = std.math.maxInt(u64);
         } else {
@@ -425,7 +424,7 @@ pub fn main() !void {
 
     // if no nums, read from stdin
     if (nums.items.len == 0) {
-        var input = std.io.getStdIn().reader().readAllAlloc(allocator, 10 * 1024 * 1024) catch |e| {
+        const input = std.io.getStdIn().reader().readAllAlloc(allocator, 10 * 1024 * 1024) catch |e| {
             std.debug.print("pc: error reading stdin: {s}\n", .{@errorName(e)});
             return std.process.exit(1);
         };
@@ -448,7 +447,7 @@ pub fn main() !void {
     defer rows.deinit();
 
     // calculate the current index based on the target
-    var cur_idx = switch (target) {
+    const cur_idx = switch (target) {
         .Moving => 0, // start at the first number
         .Fixed => |index| blk: {
             // account for negative indices and clamp
