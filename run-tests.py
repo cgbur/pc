@@ -25,6 +25,13 @@ def print_diff(expected_output, actual_output):
 
 
 def main():
+    # modify path to use zig-out/bin/pc first
+    os.environ["PATH"] = os.path.abspath("zig-out/bin") + ":" + os.environ["PATH"]
+
+    # print which pc
+    out = subprocess.check_output(["which", "pc"])
+    print(f"Using pc: {out.decode('utf-8').strip()}")
+
     test_dir = "tests"
     passed = 0
     failed = 0
