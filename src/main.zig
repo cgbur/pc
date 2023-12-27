@@ -26,7 +26,8 @@ const usage_text: []const u8 =
     \\                       Examples:
     \\                         echo "1,2,3" | pc -f 2  (second element)
     \\                         echo "1,2,3" | pc -f -1 (last element)
-    \\  -r, --raw          : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
+    \\  -r, --reverse      : Reverse the order of the numbers.
+    \\      --raw          : Show numbers in raw form (e.g. 1000000 instead of 1MiB).
     \\      --[no-]color   : Enable/disable color output (default: auto).
     \\      --format <f>   : Specify output format (options: json, csv).
     \\  -w, --warnings     : Show warnings for invalid numbers (default: false).
@@ -352,6 +353,7 @@ pub fn main() !void {
     }
     var target: ComparisonTarget = .Moving;
     var raw = false;
+    var reverse = false;
     var color: ColorChoice = .Auto;
     var format: Format = .Default;
     var print_warnings: bool = false;
@@ -381,8 +383,10 @@ pub fn main() !void {
                     continue;
                 }
             }
-        } else if (std.mem.eql(u8, arg, "-r") or std.mem.eql(u8, arg, "--raw")) {
+        } else if (std.mem.eql(u8, arg, "--raw")) {
             raw = true;
+        } else if (std.mem.eql(u8, arg, "-r") or std.mem.eql(u8, arg, "--reverse")) {
+            reverse = true;
         } else if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--delimiters")) {
             arg_i += 1;
             if (arg_i >= args.len) {
@@ -440,6 +444,10 @@ pub fn main() !void {
         std.debug.print("pc: need at least 2 numbers\n", .{});
         try stdout.writeAll(usage_text);
         return std.process.exit(1);
+    }
+
+    if (reverse) {
+        std.mem.reverse(f32, nums.items);
     }
 
     // construct the base type, collecting all the rows
